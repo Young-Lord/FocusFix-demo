@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, ApiConfig, AnalysisRequest } from '../services/apiService';
 import { screenshotService } from '../services/screenshotService';
-import { Buffer } from 'buffer';
 
 interface Theme {
   id: number;
@@ -46,6 +45,11 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
   const [currentAnalysis, setCurrentAnalysis] = useState<Analysis | null>(null);
   const [lastScreenshotData, setLastScreenshotData] = useState<string | null>(null);
   const [lastScreenshotBuffer, setLastScreenshotBuffer] = useState<Uint8Array | null>(null);
+  const [lastScreenshotInfo, setLastScreenshotInfo] = useState<{
+    width?: number;
+    height?: number;
+    format?: string;
+  } | null>(null);
   const [showScreenshot, setShowScreenshot] = useState(false);
 
   // 模拟追踪功能
@@ -97,6 +101,14 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
       if (result.success && result.data && result.buffer) {
         setScreenshotCount(prev => prev + 1);
         
+        setLastScreenshotData(result.data);
+        setLastScreenshotBuffer(result.buffer);
+        setLastScreenshotInfo({
+          width: result.width,
+          height: result.height,
+          format: result.format
+        });
+        
         // 检查相似度（如果设置了阈值）
         if (lastScreenshotBuffer && settings.similarityThreshold > 0) {
           const similarity = await screenshotService.calculateSimilarity(lastScreenshotBuffer, result.buffer);
@@ -106,14 +118,9 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
               message: `截图完成 (相似度: ${(similarity * 100).toFixed(1)}%, 跳过分析)`, 
               type: 'warning' 
             });
-            setLastScreenshotData(result.data);
-            setLastScreenshotBuffer(result.buffer);
             return; // 相似度过高，跳过分析
           }
         }
-        
-        setLastScreenshotData(result.data);
-        setLastScreenshotBuffer(result.buffer);
         
         setStatus({ 
           message: `截图完成 (${new Date().toLocaleTimeString()}, 大小: ${(result.size! / 1024).toFixed(1)}KB)`, 
@@ -323,7 +330,7 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
                 className="btn btn-secondary" 
                 onClick={() => {
                   const link = document.createElement('a');
-                  link.href = `data:image/png;base64,${lastScreenshotData}`;
+                  link.href = lastScreenshotData;
                   link.download = `screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
                   link.click();
                 }}
@@ -349,7 +356,7 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
               marginBottom: '10px'
             }}>
               <img 
-                src={`data:image/png;base64,${lastScreenshotData}`}
+                src={lastScreenshotData}
                 alt="截图预览"
                 style={{
                   maxWidth: '100%',
@@ -368,7 +375,7 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
                       <html>
                         <head><title>截图详情</title></head>
                         <body style="margin:0;padding:20px;background:#f5f5f5;text-align:center;">
-                          <img src="data:image/png;base64,${lastScreenshotData}" style="max-width:100%;max-height:100vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.2);" />
+                          <img src="${lastScreenshotData}" style="max-width:100%;max-height:100vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.2);" />
                           <div style="margin-top:20px;color:#666;">
                             截图时间: ${new Date().toLocaleString('zh-CN')} | 
                             大小: ${Math.round(lastScreenshotData.length * 3 / 4 / 1024)}KB
@@ -403,10 +410,12 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
                   <strong>文件大小:</strong> {lastScreenshotData ? Math.round(lastScreenshotData.length * 3 / 4 / 1024) : 0}KB
                 </div>
                 <div>
-                  <strong>分辨率:</strong> 800×600 (压缩后)
+                  <strong>分辨率:</strong> {lastScreenshotInfo?.width && lastScreenshotInfo?.height 
+                    ? `${lastScreenshotInfo.width}×${lastScreenshotInfo.height}` 
+                    : '未知'}
                 </div>
                 <div>
-                  <strong>格式:</strong> PNG
+                  <strong>格式:</strong> {lastScreenshotInfo?.format?.toUpperCase() || '未知'}
                 </div>
               </div>
               <div style={{ marginTop: '8px', fontSize: '0.8em', color: '#999' }}>
