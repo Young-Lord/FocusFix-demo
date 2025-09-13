@@ -9,9 +9,37 @@ interface ScreenshotResult {
   error?: string
 }
 
+interface ImageAnalysisRequest {
+  imageData: string
+  themes: Array<{
+    id: number
+    category: string
+    subcategory: string
+    specific: string
+  }>
+}
+
+interface ImageAnalysisResponse {
+  theme: {
+    id: number
+    category: string
+    subcategory: string
+    specific: string
+  }
+  analysis: string
+  confidence: number
+  timestamp: string
+  rawResponse?: any
+}
+
 interface Api {
   takeScreenshot: () => Promise<ScreenshotResult>
   calculateSimilarity: (hash1: string, hash2: string) => Promise<number>
+  openai: {
+    setConfig: (config: { apiKey: string; baseURL: string; model: string }) => Promise<{ success: boolean; message: string }>
+    testConnection: () => Promise<{ success: boolean; message: string }>
+    analyzeImage: (request: ImageAnalysisRequest) => Promise<ImageAnalysisResponse>
+  }
 }
 
 declare global {

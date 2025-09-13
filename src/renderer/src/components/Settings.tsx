@@ -157,16 +157,23 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSettingsChange }) => {
             value={settings.openaiApiModel}
             onChange={(e) => handleInputChange('openaiApiModel', e.target.value)}
           >
-            <option value="gpt-4o">GPT-4o</option>
-            <option value="gpt-4o-mini">GPT-4o Mini</option>
-            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
-            <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-            <option value="custom">自定义模型</option>
+            <optgroup label="OpenAI Vision 模型（推荐）">
+              <option value="gpt-4o">GPT-4o (Vision)</option>
+              <option value="gpt-4o-mini">GPT-4o Mini (Vision)</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo (Vision)</option>
+              <option value="gpt-4-vision-preview">GPT-4 Vision Preview</option>
+            </optgroup>
+            <optgroup label="其他模型">
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+              <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            </optgroup>
+            <optgroup label="自定义">
+              <option value="custom">自定义模型</option>
+            </optgroup>
           </select>
-          <small style={{ color: '#666' }}>选择用于分析的AI模型</small>
+          <small style={{ color: '#666' }}>选择用于图片分析的AI模型，Vision模型效果最佳</small>
         </div>
         {settings.openaiApiModel === 'custom' && (
           <div className="form-group">

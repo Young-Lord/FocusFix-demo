@@ -264,11 +264,26 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
         <div className="card">
           <h3>🔍 当前分析结果</h3>
           <div>
-            <div className="theme-chip">{currentAnalysis.theme.category}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              <div className="theme-chip">{currentAnalysis.theme.category}</div>
+              <div style={{ 
+                background: currentAnalysis.confidence > 80 ? '#4caf50' : currentAnalysis.confidence > 60 ? '#ff9800' : '#f44336',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '0.8em',
+                fontWeight: 'bold'
+              }}>
+                置信度: {Math.round(currentAnalysis.confidence)}%
+              </div>
+            </div>
             <div style={{ margin: '10px 0' }}>
               <strong>{currentAnalysis.theme.subcategory} - {currentAnalysis.theme.specific}</strong>
             </div>
-            <div style={{ color: '#666' }}>{currentAnalysis.analysis}</div>
+            <div style={{ color: '#666', marginBottom: '10px' }}>{currentAnalysis.analysis}</div>
+            <div style={{ fontSize: '0.8em', color: '#999' }}>
+              分析时间: {new Date(currentAnalysis.timestamp).toLocaleString('zh-CN')}
+            </div>
           </div>
         </div>
       )}

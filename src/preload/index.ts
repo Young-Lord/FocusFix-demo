@@ -5,7 +5,15 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api = {
   // 截图相关API
   takeScreenshot: () => ipcRenderer.invoke('take-screenshot'),
-  calculateSimilarity: (hash1: string, hash2: string) => ipcRenderer.invoke('calculate-similarity', hash1, hash2)
+  calculateSimilarity: (hash1: string, hash2: string) => ipcRenderer.invoke('calculate-similarity', hash1, hash2),
+  
+  // OpenAI相关API
+  openai: {
+    setConfig: (config: { apiKey: string; baseURL: string; model: string }) => 
+      ipcRenderer.invoke('openai-set-config', config),
+    testConnection: () => ipcRenderer.invoke('openai-test-connection'),
+    analyzeImage: (request: any) => ipcRenderer.invoke('openai-analyze-image', request)
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

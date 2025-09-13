@@ -1,3 +1,5 @@
+// 移除OpenAI依赖，改为通过IPC调用主进程
+
 // API服务模块
 export interface ApiConfig {
   endpoint: string;
@@ -48,24 +50,19 @@ class ApiService {
     }
 
     try {
-      // 模拟API连接测试
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-      
-      // 模拟测试结果（80%成功率）
-      const success = Math.random() > 0.2;
-      
-      if (success) {
-        return { 
-          success: true, 
-          message: `连接成功！端点: ${this.config.endpoint}, 模型: ${this.getModelName()}` 
-        };
-      } else {
-        return { 
-          success: false, 
-          message: `连接失败！请检查端点地址和API密钥是否正确` 
-        };
-      }
+      // 通过IPC调用主进程设置OpenAI配置
+      await window.api.openai.setConfig({
+        apiKey: this.config.apiKey,
+        baseURL: this.config.endpoint,
+        model: this.getModelName()
+      });
+
+      // 通过IPC调用主进程测试连接
+      const result = await window.api.openai.testConnection();
+      return result;
+
     } catch (error) {
+      console.error('API连接测试失败:', error);
       return { 
         success: false, 
         message: `连接失败: ${error instanceof Error ? error.message : '未知错误'}` 
@@ -79,26 +76,51 @@ class ApiService {
       throw new Error('API配置未设置');
     }
 
-    // 模拟API调用（实际项目中这里会发送真实的图片数据到API）
-    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+    try {
+      // 通过IPC调用主进程设置OpenAI配置
+      await window.api.openai.setConfig({
+        apiKey: this.config.apiKey,
+        baseURL: this.config.endpoint,
+        model: this.getModelName()
+      });
 
-    // 模拟API调用失败的情况
-    if (Math.random() < 0.1) {
-      throw new Error(`API调用失败: ${this.config.endpoint}`);
+      // 构建图片分析请求
+      const imageRequest = {
+        imageData: request.imageData,
+        themes: request.themes
+      };
+
+      // 通过IPC调用主进程进行图片分析
+      const result = await window.api.openai.analyzeImage(imageRequest);
+      
+      // 转换响应格式
+      return {
+        theme: result.theme,
+        analysis: result.analysis,
+        confidence: result.confidence,
+        timestamp: result.timestamp
+      };
+
+    } catch (error) {
+      console.error('图片分析失败:', error);
+      
+      // 如果OpenAI API失败，回退到模拟分析
+      console.warn('回退到模拟分析模式');
+      return this.fallbackAnalysis(request);
     }
+  }
 
-    // 模拟分析结果（基于图片数据）
+  // 回退分析（当OpenAI API不可用时）
+  private fallbackAnalysis(request: AnalysisRequest): AnalysisResponse {
     const randomTheme = request.themes[Math.floor(Math.random() * request.themes.length)];
     const modelName = this.getModelName();
-    
-    // 这里可以添加基于图片数据的分析逻辑
     const imageSize = request.imageData.length;
     const analysisQuality = imageSize > 100000 ? '高质量' : '标准质量';
     
     return {
       theme: randomTheme,
-      analysis: `使用${modelName}模型分析 (${analysisQuality}): 用户正在${randomTheme.category}${randomTheme.subcategory}${randomTheme.specific}相关活动。图片大小: ${(imageSize / 1024).toFixed(1)}KB`,
-      confidence: 0.8 + Math.random() * 0.2,
+      analysis: `[模拟模式] 使用${modelName}模型分析 (${analysisQuality}): 用户正在${randomTheme.category}${randomTheme.subcategory}${randomTheme.specific}相关活动。图片大小: ${(imageSize / 1024).toFixed(1)}KB`,
+      confidence: 0.6 + Math.random() * 0.2, // 模拟模式置信度较低
       timestamp: new Date().toISOString()
     };
   }

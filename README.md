@@ -40,6 +40,9 @@ src/renderer/src/
 ├── services/
 │   ├── apiService.ts         # API服务模块
 │   └── screenshotService.ts  # 截图服务模块
+├── main/
+│   └── services/
+│       └── openaiService.ts  # 主进程OpenAI服务
 ├── App.tsx                   # 应用入口
 └── assets/
     └── main.css              # 全局样式
@@ -79,10 +82,16 @@ npm run build:linux
 ## API配置
 
 ### 支持的模型
-- **OpenAI**: GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-3.5 Turbo
-- **Anthropic**: Claude 3.5 Sonnet, Claude 3 Opus
-- **Google**: Gemini 1.5 Pro
+- **OpenAI Vision 模型（推荐）**: GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-4 Vision Preview
+- **其他模型**: GPT-3.5 Turbo, Claude 3.5 Sonnet, Claude 3 Opus, Gemini 1.5 Pro
 - **自定义**: 支持自定义模型名称
+
+### 图片识别功能
+- **智能分析**: 使用OpenAI Vision API进行图片内容分析
+- **主题匹配**: 自动匹配用户定义的主题分类
+- **置信度评估**: 提供分析结果的置信度评分
+- **回退机制**: API失败时自动回退到模拟模式
+- **安全架构**: OpenAI API调用在主进程中执行，确保API密钥安全
 
 ### API端点配置
 - 默认端点: `https://api.openai.com/v1`

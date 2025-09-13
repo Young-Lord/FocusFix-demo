@@ -1,9 +1,8 @@
-import { app, shell, BrowserWindow, ipcMain, desktopCapturer, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, desktopCapturer } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import * as fs from 'fs'
-import * as path from 'path'
+import { openaiService, ImageAnalysisRequest } from './services/openaiService'
 
 function createWindow(): void {
   // Create the browser window.
@@ -107,7 +106,7 @@ app.whenReady().then(() => {
   }
 
   // 计算两张图片的相似度
-  ipcMain.handle('calculate-similarity', async (event, hash1: string, hash2: string) => {
+  ipcMain.handle('calculate-similarity', async (_, hash1: string, hash2: string) => {
     try {
       // 简单的哈希相似度计算
       const h1 = parseInt(hash1, 16)
@@ -117,6 +116,47 @@ app.whenReady().then(() => {
     } catch (error) {
       console.error('相似度计算失败:', error)
       return 0
+    }
+  })
+
+  // OpenAI API配置
+  ipcMain.handle('openai-set-config', async (_, config: {
+    apiKey: string;
+    baseURL: string;
+    model: string;
+  }) => {
+    try {
+      openaiService.setConfig(config)
+      return { success: true, message: 'OpenAI配置已设置' }
+    } catch (error) {
+      console.error('OpenAI配置失败:', error)
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : '配置失败' 
+      }
+    }
+  })
+
+  // 测试OpenAI连接
+  ipcMain.handle('openai-test-connection', async () => {
+    try {
+      return await openaiService.testConnection()
+    } catch (error) {
+      console.error('OpenAI连接测试失败:', error)
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : '连接测试失败' 
+      }
+    }
+  })
+
+  // 分析图片
+  ipcMain.handle('openai-analyze-image', async (_, request: ImageAnalysisRequest) => {
+    try {
+      return await openaiService.analyzeImage(request)
+    } catch (error) {
+      console.error('OpenAI图片分析失败:', error)
+      throw error // 让渲染进程处理错误
     }
   })
 
