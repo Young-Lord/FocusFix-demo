@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiService, ApiConfig, AnalysisRequest } from '../services/apiService';
 import { screenshotService } from '../services/screenshotService';
 
@@ -44,6 +44,8 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
   const [status, setStatus] = useState({ message: '准备就绪', type: 'warning' });
   const [currentAnalysis, setCurrentAnalysis] = useState<Analysis | null>(null);
   const [lastScreenshotData, setLastScreenshotData] = useState<string | null>(null);
+  // useref of lastScreenshotData
+  const lastScreenshotDataRef = useRef<string | null>(null);
   const [lastScreenshotBuffer, setLastScreenshotBuffer] = useState<Uint8Array | null>(null);
   const [lastScreenshotInfo, setLastScreenshotInfo] = useState<{
     width?: number;
@@ -54,8 +56,8 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
 
   // 模拟追踪功能
   useEffect(() => {
-    let trackingInterval: NodeJS.Timeout | null = null;
-    let analysisInterval: NodeJS.Timeout | null = null;
+    let trackingInterval: ReturnType<typeof setInterval> | null = null;
+    let analysisInterval: ReturnType<typeof setInterval> | null = null;
 
     // 更新API服务配置
     const apiConfig: ApiConfig = {
@@ -100,8 +102,11 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
       
       if (result.success && result.data && result.buffer) {
         setScreenshotCount(prev => prev + 1);
+
+        console.log("huo de xin jie tu")
         
         setLastScreenshotData(result.data);
+        lastScreenshotDataRef.current = result.data; // 更新ref
         setLastScreenshotBuffer(result.buffer);
         setLastScreenshotInfo({
           width: result.width,
@@ -153,8 +158,9 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
 
     try {
       // 准备分析请求
+      console.log('准备进行分析，当前截图数据长度:', lastScreenshotDataRef.current ? lastScreenshotDataRef.current.length : '无');
       const request: AnalysisRequest = {
-        imageData: lastScreenshotData || 'no_image_data', // 使用真实的截图数据
+        imageData: lastScreenshotDataRef.current || 'no_image_data', // 使用真实的截图数据
         themes: themes
       };
 
