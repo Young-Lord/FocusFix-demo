@@ -93,16 +93,22 @@ const TimelineChart: React.FC<TimelineChartProps> = ({ analyses }) => {
         const segments = processAnalyses();
         if (segments.length === 0) return { minTime: 0, maxTime: 0, timeRange: 0, pixelsPerMs: 0 };
 
-        // 获取所有日期的范围
-        const dates = [...new Set(segments.map(s => new Date(s.startTime).toISOString().split('T')[0]))].sort();
+        // 获取所有日期的范围，使用本地时区
+        const dates = [...new Set(segments.map(s => {
+            const date = new Date(s.startTime);
+            return date.getFullYear() + '-' +
+                String(date.getMonth() + 1).padStart(2, '0') + '-' +
+                String(date.getDate()).padStart(2, '0');
+        }))].sort();
+
         if (dates.length === 0) return { minTime: 0, maxTime: 0, timeRange: 0, pixelsPerMs: 0 };
 
-        // 每天的时间范围是0:00-24:00
-        const firstDate = new Date(dates[0]);
-        const lastDate = new Date(dates[dates.length - 1]);
+        // 每天的时间范围是0:00-24:00（本地时区）
+        const firstDate = dates[0].split('-').map(Number);
+        const lastDate = dates[dates.length - 1].split('-').map(Number);
 
-        const minTime = new Date(firstDate.getFullYear(), firstDate.getMonth(), firstDate.getDate(), 0, 0, 0).getTime();
-        const maxTime = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate(), 24, 0, 0).getTime();
+        const minTime = new Date(firstDate[0], firstDate[1] - 1, firstDate[2], 0, 0, 0).getTime();
+        const maxTime = new Date(lastDate[0], lastDate[1] - 1, lastDate[2], 24, 0, 0).getTime();
         const timeRange = maxTime - minTime;
 
         // 基础宽度为1000px，每小时的宽度为1000/24 ≈ 41.67px
@@ -116,12 +122,13 @@ const TimelineChart: React.FC<TimelineChartProps> = ({ analyses }) => {
     const handleWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        const newZoom = Math.max(0.1, Math.min(10, zoom * delta));
+        const newZoom = Math.max(0.2, Math.min(2, zoom * delta));
         setZoom(newZoom);
     }, [zoom]);
 
     // 处理鼠标拖动
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        e.preventDefault(); // 防止文字选中
         setIsDragging(true);
         setDragStart({ x: e.clientX, panX });
     }, [panX]);
@@ -133,8 +140,11 @@ const TimelineChart: React.FC<TimelineChartProps> = ({ analyses }) => {
     // 处理鼠标移动（拖动和悬停）
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
         if (isDragging) {
+            e.preventDefault(); // 防止文字选中
             const deltaX = e.clientX - dragStart.x;
-            const newPanX = Math.min(0, dragStart.panX + deltaX);
+            const { pixelsPerMs } = getTimeRange();
+            const hourMs = 60 * 60 * 1000;
+            const newPanX = Math.max(-hourMs * pixelsPerMs * 24, Math.min(0, dragStart.panX + deltaX));
             setPanX(newPanX);
         }
     }, [isDragging, dragStart]);
@@ -162,10 +172,13 @@ const TimelineChart: React.FC<TimelineChartProps> = ({ analyses }) => {
         const hourMs = 60 * 60 * 1000;
 
         // 为每一天渲染0-24小时的时间刻度
-        if (dates.length !== 0) {
+        if (dates.length > 0) {
             const dateStr = dates[0];
-            const date = new Date(dateStr);
-            const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const dayStart = new Date(year, month - 1, day, 0, 0, 0).getTime();
+
+            // 每天的基础位置（暂时未使用，保留用于未来扩展）
+            // const dayBaseLeft = dateIndex * 1000;
 
             // 渲染0-24小时
             for (let hour = 0; hour <= 24; hour++) {
@@ -186,13 +199,18 @@ const TimelineChart: React.FC<TimelineChartProps> = ({ analyses }) => {
                             zIndex: 1
                         }}
                     >
-                        <div className="hour-label">
-                            {hour === 24 ? '24:00' : hour.toString().padStart(2, '0') + ':00'}
+                        <div className="hour-label"
+                            style={{
+                                padding: 0,
+                                maxWidth: `${hourMs * pixelsPerMs - 2}px`,
+                                overflow: 'hidden',
+                            }}>
+                            {hour === 24 ? '24' : hour.toString()}
                         </div>
                     </div>
                 );
             }
-        };
+        }
 
         return markers;
     };
@@ -223,60 +241,74 @@ const TimelineChart: React.FC<TimelineChartProps> = ({ analyses }) => {
         const segments = processAnalyses();
         if (segments.length === 0) return null;
 
-        const { minTime, pixelsPerMs, dates } = getTimeRange();
+        const { pixelsPerMs, dates } = getTimeRange();
         if (pixelsPerMs === 0 || !dates) return null;
 
         // 按日期分组
         const segmentsByDate = segments.reduce((acc, segment) => {
-            const date = new Date(segment.startTime).toISOString().split('T')[0];
+            const segmentDate = new Date(segment.startTime);
+            // 使用本地时区获取日期字符串
+            const date = segmentDate.getFullYear() + '-' +
+                String(segmentDate.getMonth() + 1).padStart(2, '0') + '-' +
+                String(segmentDate.getDate()).padStart(2, '0');
             if (!acc[date]) acc[date] = [];
             acc[date].push(segment);
             return acc;
         }, {} as Record<string, TimeSegment[]>);
 
-        return dates.map((date) => (
-            <div key={date} className="timeline-day">
-                <div className="day-segments">
-                    {segmentsByDate[date]?.map((segment, segmentIndex) => {
-                        const left = (segment.startTime - new Date(date).getTime()) * pixelsPerMs;
-                        const width = (segment.endTime - segment.startTime) * pixelsPerMs;
+        return dates.map((date) => {
+            // 创建当天0:00的本地时间
+            const [year, month, day] = date.split('-').map(Number);
+            const dayStart = new Date(year, month - 1, day, 0, 0, 0).getTime();
 
-                        return (
-                            <div
-                                key={segmentIndex}
-                                className={`time-segment ${hoveredSegment === segment ? 'hovered' : ''}`}
-                                style={{
-                                    left: `${left}px`,
-                                    width: `${Math.max(width, 2)}px`,
-                                    backgroundColor: getCategoryColor(segment.category),
-                                    position: 'absolute',
-                                    top: '5px',
-                                    height: '30px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #fff',
-                                    cursor: 'pointer',
-                                    zIndex: 2,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '10px',
-                                    color: '#fff',
-                                    fontWeight: 'bold',
-                                    textShadow: '1px 1px 1px rgba(0,0,0,0.5)',
-                                    overflow: 'hidden',
-                                    whiteSpace: 'nowrap'
-                                }}
-                                onMouseEnter={() => handleSegmentHover(segment)}
-                                onMouseLeave={() => handleSegmentHover(null)}
-                                title={`${segment.category} - ${segment.subcategory} - ${segment.specific}`}
-                            >
-                                {width > 50 ? (segment.subcategory || segment.category) : ''}
-                            </div>
-                        );
-                    }) || []}
+            return (
+                <div key={date} className="timeline-day">
+                    <div className="day-segments">
+                        {segmentsByDate[date]?.map((segment, segmentIndex) => {
+                            // 使用本地时间计算位置
+                            const segmentStart = new Date(segment.startTime).getTime();
+                            const segmentEnd = new Date(segment.endTime).getTime();
+
+                            const left = (segmentStart - dayStart) * pixelsPerMs;
+                            const width = (Math.min(segmentEnd, dayStart + 24 * 60 * 60 * 1000) - segmentStart) * pixelsPerMs;
+
+                            return (
+                                <div
+                                    key={segmentIndex}
+                                    className={`time-segment ${hoveredSegment === segment ? 'hovered' : ''}`}
+                                    style={{
+                                        left: `${left}px`,
+                                        width: `${Math.max(width, 2)}px`,
+                                        backgroundColor: getCategoryColor(segment.category),
+                                        position: 'absolute',
+                                        top: '5px',
+                                        height: '30px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #fff',
+                                        cursor: 'pointer',
+                                        zIndex: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '10px',
+                                        color: '#fff',
+                                        fontWeight: 'bold',
+                                        textShadow: '1px 1px 1px rgba(0,0,0,0.5)',
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                    onMouseEnter={() => handleSegmentHover(segment)}
+                                    onMouseLeave={() => handleSegmentHover(null)}
+                                    title={`${segment.category} - ${segment.subcategory} - ${segment.specific}`}
+                                >
+                                    {width > 50 ? (segment.subcategory || segment.category) : ''}
+                                </div>
+                            );
+                        }) || []}
+                    </div>
                 </div>
-            </div>
-        ));
+            );
+        });
     };
 
     if (analyses.length === 0) {
@@ -291,8 +323,8 @@ const TimelineChart: React.FC<TimelineChartProps> = ({ analyses }) => {
         <div className="timeline-chart-container">
             <div className="timeline-chart-header">
                 <h4>📊 时间分布图</h4>
-                <div className="chart-controls">
-                    <span>缩放: {Math.round(zoom * 100)}%</span>
+                <div className="chart-c缩放ontrols">
+                    {/* <span>缩放: {Math.round(zoom * 100)}%</span> */}
                     <button
                         className="btn btn-secondary"
                         onClick={() => { setZoom(1); setPanX(0); }}
@@ -341,8 +373,8 @@ const TimelineChart: React.FC<TimelineChartProps> = ({ analyses }) => {
                     <div className="tooltip-details">
                         <strong>{hoveredSegment.subcategory} - {hoveredSegment.specific}</strong>
                         <div className="tooltip-time">
-                            {new Date(hoveredSegment.startTime).toLocaleTimeString('zh-CN')} -
-                            {new Date(hoveredSegment.endTime).toLocaleTimeString('zh-CN')}
+                            {new Date(hoveredSegment.startTime).toLocaleTimeString()} -
+                            {new Date(hoveredSegment.endTime).toLocaleTimeString()}
                         </div>
                         <div className="tooltip-analysis">{hoveredSegment.analysis}</div>
                     </div>

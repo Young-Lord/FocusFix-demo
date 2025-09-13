@@ -60,9 +60,9 @@ const Timeline: React.FC<TimelineProps> = ({ analyses, onAnalysesChange }) => {
     const now = new Date();
     const categories = ['学习', '工作', '娱乐', '生活'];
     const subcategories = {
-      '学习': ['编程', '阅读', '课程'],
-      '工作': ['会议', '开发', '文档'],
-      '娱乐': ['游戏', '视频', '音乐'],
+      '学习': ['阅读', '课程'],
+      '工作': ['开发', '文档'],
+      '娱乐': ['游戏', '视频'],
       '生活': ['购物', '社交', '运动']
     };
     const specifics = {
@@ -98,7 +98,7 @@ const Timeline: React.FC<TimelineProps> = ({ analyses, onAnalysesChange }) => {
         const specific = specifics[subcategory] ? specifics[subcategory][Math.floor(Math.random() * specifics[subcategory].length)] : '其他';
 
         // 在0-24小时内随机选择开始时间
-        const startHour = Math.random() * 24;
+        const startHour = Math.random() *18 + 6;
         const startTime = new Date(dayStart.getTime() + startHour * 60 * 60 * 1000);
         const duration = 15 + Math.random() * 120; // 15-135分钟
         const endTime = new Date(startTime.getTime() + duration * 60 * 1000);

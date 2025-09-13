@@ -527,6 +527,10 @@ input:checked + .slider:before {
   position: relative;
   overflow: hidden;
   background: #f8f9fa;
+  user-select: none; /* 防止文字选中 */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE/Edge */
 }
 
 .timeline-chart-content {
@@ -545,6 +549,10 @@ input:checked + .slider:before {
   height: 30px;
   z-index: 1;
   transition: transform 0.1s ease;
+  user-select: none; /* 防止文字选中 */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .hour-marker {
@@ -574,6 +582,10 @@ input:checked + .slider:before {
   width: 100%;
   height: calc(100% - 30px);
   transition: transform 0.1s ease;
+  user-select: none; /* 防止文字选中 */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .timeline-day {
@@ -607,7 +619,7 @@ input:checked + .slider:before {
   text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
   overflow: hidden;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all 0.1s ease;
 }
 
 .time-segment:hover,

@@ -71,9 +71,6 @@ const FocusTracker: React.FC = () => {
     } else {
       // 默认主题
       const defaultThemes: Theme[] = [
-        { id: 1, category: '学习', subcategory: '编程', specific: 'Python' },
-        { id: 2, category: '学习', subcategory: '编程', specific: 'JavaScript' },
-        { id: 3, category: '学习', subcategory: '编程', specific: 'TypeScript' },
         { id: 4, category: '学习', subcategory: '阅读', specific: '技术文档' },
         { id: 5, category: '学习', subcategory: '阅读', specific: '书籍' },
         { id: 6, category: '工作', subcategory: '会议', specific: '团队会议' },
