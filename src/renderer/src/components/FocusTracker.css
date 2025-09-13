@@ -442,6 +442,279 @@ input:checked + .slider:before {
   border-color: #f5c6cb;
 }
 
+/* Timeline Chart Styles */
+.timeline-chart-container {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #1976d2;
+}
+
+.timeline-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.timeline-chart-header h4 {
+  color: #1976d2;
+  margin: 0;
+  font-size: 1.2em;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.chart-controls span {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.timeline-chart-wrapper {
+  display: flex;
+  width: 100%;
+  height: 300px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+/* 左侧日期列 - 固定 */
+.date-column {
+  width: 120px;
+  background: #f5f5f5;
+  border-right: 2px solid #ddd;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.date-header {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  color: #333;
+  background: #e0e0e0;
+  border-bottom: 1px solid #ccc;
+}
+
+.date-item {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #333;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+  padding: 0 5px;
+}
+
+/* 右侧内容区域 - 可滚动和缩放 */
+.timeline-content-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.timeline-chart-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* 限制内容区域，防止显示超出24小时的内容 */
+  max-width: 100%;
+}
+
+.hour-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 30px;
+  z-index: 1;
+  transition: transform 0.1s ease;
+}
+
+.hour-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 1px;
+  background-color: #ddd;
+}
+
+.hour-label {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 10px;
+  color: #666;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.timeline-rows {
+  position: absolute;
+  top: 30px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 30px);
+  transition: transform 0.1s ease;
+}
+
+.timeline-day {
+  height: 40px;
+  margin-bottom: 5px;
+  position: relative;
+}
+
+.day-segments {
+  position: relative;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  margin: 0 5px;
+}
+
+.time-segment {
+  position: absolute;
+  top: 5px;
+  height: 30px;
+  border-radius: 4px;
+  border: 1px solid #fff;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+  overflow: hidden;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.time-segment:hover,
+.time-segment.hovered {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 3;
+}
+
+.timeline-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  max-width: 300px;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tooltip-category {
+  color: white;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-bottom: 5px;
+  display: inline-block;
+}
+
+.tooltip-details {
+  margin-top: 5px;
+}
+
+.tooltip-time {
+  color: #ccc;
+  font-size: 11px;
+  margin: 3px 0;
+}
+
+.tooltip-analysis {
+  color: #ddd;
+  font-size: 11px;
+  line-height: 1.3;
+  margin-top: 5px;
+}
+
+.timeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}
+
+/* Chart interaction styles */
+.timeline-chart-wrapper:hover {
+  cursor: grab;
+}
+
+.timeline-chart-wrapper:active {
+  cursor: grabbing;
+}
+
+/* Responsive adjustments for chart */
+@media (max-width: 768px) {
+  .timeline-chart-wrapper {
+    height: 250px;
+  }
+  
+  .timeline-chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .chart-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .timeline-legend {
+    gap: 10px;
+  }
+  
+  .legend-item {
+    font-size: 0.8em;
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 10px;

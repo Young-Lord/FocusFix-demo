@@ -119,26 +119,26 @@ const FocusTracker: React.FC = () => {
 
       {/* 标签页 */}
       <div className="tabs">
-        <button 
-          className={`tab ${currentTab === 'timeline' ? 'active' : ''}`} 
+        <button
+          className={`tab ${currentTab === 'timeline' ? 'active' : ''}`}
           onClick={() => showTab('timeline')}
         >
           时间线
         </button>
-        <button 
-          className={`tab ${currentTab === 'tracking' ? 'active' : ''}`} 
+        <button
+          className={`tab ${currentTab === 'tracking' ? 'active' : ''}`}
           onClick={() => showTab('tracking')}
         >
           追踪控制
         </button>
-        <button 
-          className={`tab ${currentTab === 'themes' ? 'active' : ''}`} 
+        <button
+          className={`tab ${currentTab === 'themes' ? 'active' : ''}`}
           onClick={() => showTab('themes')}
         >
           主题管理
         </button>
-        <button 
-          className={`tab ${currentTab === 'settings' ? 'active' : ''}`} 
+        <button
+          className={`tab ${currentTab === 'settings' ? 'active' : ''}`}
           onClick={() => showTab('settings')}
         >
           设置
@@ -148,14 +148,14 @@ const FocusTracker: React.FC = () => {
       {/* 时间线标签页 */}
       {currentTab === 'timeline' && (
         <div className="tab-content active">
-          <Timeline analyses={analyses} />
+          <Timeline analyses={analyses} onAnalysesChange={saveAnalyses} />
         </div>
       )}
 
       {/* 追踪控制标签页 */}
       {currentTab === 'tracking' && (
         <div className="tab-content active">
-          <TrackingControl 
+          <TrackingControl
             settings={settings}
             themes={themes}
             onAnalysesChange={saveAnalyses}
@@ -167,7 +167,7 @@ const FocusTracker: React.FC = () => {
       {/* 主题管理标签页 */}
       {currentTab === 'themes' && (
         <div className="tab-content active">
-          <ThemeManager 
+          <ThemeManager
             themes={themes}
             onThemesChange={(newThemes) => {
               setThemes(newThemes);
@@ -180,7 +180,7 @@ const FocusTracker: React.FC = () => {
       {/* 设置标签页 */}
       {currentTab === 'settings' && (
         <div className="tab-content active">
-          <SettingsComponent 
+          <SettingsComponent
             settings={settings}
             onSettingsChange={saveSettings}
           />
