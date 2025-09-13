@@ -44,6 +44,7 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
   const [lastScreenshotHash, setLastScreenshotHash] = useState<string | null>(null);
   const [lastScreenshotData, setLastScreenshotData] = useState<string | null>(null);
   const [cacheInfo, setCacheInfo] = useState({ hasCache: false, age: 0, size: 0 });
+  const [showScreenshot, setShowScreenshot] = useState(false);
 
   // 模拟追踪功能
   useEffect(() => {
@@ -183,7 +184,8 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
 
   const testScreenshot = async () => {
     await takeScreenshot();
-    alert('测试截图完成');
+    setShowScreenshot(true);
+    // 移除alert，让用户直接看到图片
   };
 
   const testAnalysis = async () => {
@@ -226,11 +228,20 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
               setCacheInfo({ hasCache: false, age: 0, size: 0 });
               setLastScreenshotHash(null);
               setLastScreenshotData(null);
+              setShowScreenshot(false);
             }}
             disabled={!cacheInfo.hasCache}
           >
             🗑️ 清除缓存
           </button>
+          {showScreenshot && lastScreenshotData && (
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setShowScreenshot(false)}
+            >
+              🖼️ 隐藏图片
+            </button>
+          )}
         </div>
         <div className={`status ${status.type}`}>
           状态：{status.message}
@@ -283,6 +294,109 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
             <div style={{ color: '#666', marginBottom: '10px' }}>{currentAnalysis.analysis}</div>
             <div style={{ fontSize: '0.8em', color: '#999' }}>
               分析时间: {new Date(currentAnalysis.timestamp).toLocaleString('zh-CN')}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showScreenshot && lastScreenshotData && (
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <h3>📸 截图预览</h3>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = `data:image/png;base64,${lastScreenshotData}`;
+                  link.download = `screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+                  link.click();
+                }}
+                style={{ fontSize: '0.8em', padding: '5px 10px' }}
+              >
+                💾 下载
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowScreenshot(false)}
+                style={{ fontSize: '0.8em', padding: '5px 10px' }}
+              >
+                ❌ 关闭
+              </button>
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              border: '2px dashed #ddd', 
+              borderRadius: '8px', 
+              padding: '10px',
+              backgroundColor: '#fafafa',
+              marginBottom: '10px'
+            }}>
+              <img 
+                src={`data:image/png;base64,${lastScreenshotData}`}
+                alt="截图预览"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '500px',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease'
+                }}
+                onClick={() => {
+                  // 点击图片可以放大查看
+                  const newWindow = window.open();
+                  if (newWindow) {
+                    newWindow.document.write(`
+                      <html>
+                        <head><title>截图详情</title></head>
+                        <body style="margin:0;padding:20px;background:#f5f5f5;text-align:center;">
+                          <img src="data:image/png;base64,${lastScreenshotData}" style="max-width:100%;max-height:100vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.2);" />
+                          <div style="margin-top:20px;color:#666;">
+                            截图时间: ${new Date().toLocaleString('zh-CN')} | 
+                            大小: ${Math.round(lastScreenshotData.length * 3 / 4 / 1024)}KB
+                          </div>
+                        </body>
+                      </html>
+                    `);
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              />
+            </div>
+            <div style={{ 
+              fontSize: '0.9em', 
+              color: '#666', 
+              marginTop: '10px',
+              padding: '10px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '6px',
+              border: '1px solid #e9ecef'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <strong>截图时间:</strong> {new Date().toLocaleString('zh-CN')}
+                </div>
+                <div>
+                  <strong>文件大小:</strong> {lastScreenshotData ? Math.round(lastScreenshotData.length * 3 / 4 / 1024) : 0}KB
+                </div>
+                <div>
+                  <strong>分辨率:</strong> 800×600 (压缩后)
+                </div>
+                <div>
+                  <strong>格式:</strong> PNG
+                </div>
+              </div>
+              <div style={{ marginTop: '8px', fontSize: '0.8em', color: '#999' }}>
+                💡 点击图片可以放大查看，点击下载按钮保存到本地
+              </div>
             </div>
           </div>
         </div>
