@@ -34,7 +34,7 @@ interface ImageAnalysisResponse {
 
 interface Api {
   takeScreenshot: () => Promise<ScreenshotResult>
-  calculateSimilarity: (hash1: string, hash2: string) => Promise<number>
+  calculateSimilarity: (image1: Buffer, image2: Buffer) => Promise<number>
   openai: {
     setConfig: (config: { apiKey: string; baseURL: string; model: string }) => Promise<{ success: boolean; message: string }>
     testConnection: () => Promise<{ success: boolean; message: string }>

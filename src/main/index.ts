@@ -1,8 +1,13 @@
-import { app, shell, BrowserWindow, ipcMain, desktopCapturer } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { openaiService, ImageAnalysisRequest } from './services/openaiService'
+import screenshot from 'screenshot-desktop'
+import { ssim } from 'ssim.js'
+import { get as getImageData } from '@andreekeberg/imagedata'
+import { promisify } from 'util'
+
 
 function createWindow(): void {
   // Create the browser window.
@@ -10,6 +15,7 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: false,
+    title:"FocusFix",
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -58,31 +64,31 @@ app.whenReady().then(() => {
   // 截图功能
   ipcMain.handle('take-screenshot', async () => {
     try {
-      // 请求屏幕录制权限
-      const sources = await desktopCapturer.getSources({
-        types: ['screen'],
-        thumbnailSize: { width: 800, height: 600 } // 压缩到较小尺寸
-      })
+      // // 请求屏幕录制权限
+      // const sources = await desktopCapturer.getSources({
+      //   types: ['screen'],
+      //   // thumbnailSize: { width: 800, height: 600 } // 压缩到较小尺寸
+      // })
 
-      if (sources.length === 0) {
-        throw new Error('无法获取屏幕源，请检查屏幕录制权限设置')
-      }
+      // if (sources.length === 0) {
+      //   throw new Error('无法获取屏幕源，请检查屏幕录制权限设置')
+      // }
 
-      // 获取主屏幕
-      const primarySource = sources.find(source => source.name === 'Entire Screen') || sources[0]
+      // // 获取主屏幕
+      // const primarySource = sources.find(source => source.name === 'Entire Screen') || sources[0]
       
-      // 将截图转换为base64
-      const thumbnail = primarySource.thumbnail
-      const base64 = thumbnail.toPNG().toString('base64')
+      // // 将截图转换为base64
+      // const thumbnail = primarySource.thumbnail
+      // const base64 = thumbnail.toPNG().toString('base64')
       
-      // 计算图片的简单哈希值用于相似度检测
-      const imageData = thumbnail.toPNG()
-      const hash = calculateImageHash(imageData)
+      // // 计算图片的简单哈希值用于相似度检测
+      // const imageData = thumbnail.toPNG()
+      const imageData: Buffer = await screenshot(); // jpg
+      const base64 = imageData.toString('base64')
       
       return {
         success: true,
         data: base64,
-        hash: hash,
         timestamp: Date.now(),
         size: imageData.length
       }
@@ -96,23 +102,14 @@ app.whenReady().then(() => {
   })
 
   // 计算图片哈希值（用于相似度检测）
-  function calculateImageHash(imageData: Buffer): string {
-    // 简单的哈希算法，将图片数据转换为字符串
-    let hash = 0
-    for (let i = 0; i < imageData.length; i += 4) {
-      hash = ((hash << 5) - hash + imageData[i]) & 0xffffffff
-    }
-    return hash.toString(16)
-  }
-
   // 计算两张图片的相似度
-  ipcMain.handle('calculate-similarity', async (_, hash1: string, hash2: string) => {
+  ipcMain.handle('calculate-similarity', async (_, image1: Uint8Array, image2: Uint8Array) => {
     try {
-      // 简单的哈希相似度计算
-      const h1 = parseInt(hash1, 16)
-      const h2 = parseInt(hash2, 16)
-      const similarity = 100 - Math.abs(h1 - h2) / Math.max(h1, h2) * 100
-      return Math.max(0, Math.min(100, similarity))
+      const img1 = await promisify(getImageData)(Buffer.from(image1))
+      const img2 = await promisify(getImageData)(Buffer.from(image2))
+      const { mssim } = ssim(img1, img2);
+      console.log(mssim)
+      return mssim // higher is more similar
     } catch (error) {
       console.error('相似度计算失败:', error)
       return 0

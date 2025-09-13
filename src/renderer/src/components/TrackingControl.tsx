@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, ApiConfig, AnalysisRequest } from '../services/apiService';
 import { screenshotService } from '../services/screenshotService';
+import { Buffer } from 'buffer';
 
 interface Theme {
   id: number;
@@ -41,9 +42,8 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
   const [currentTheme, setCurrentTheme] = useState<Theme | null>(null);
   const [status, setStatus] = useState({ message: '准备就绪', type: 'warning' });
   const [currentAnalysis, setCurrentAnalysis] = useState<Analysis | null>(null);
-  const [lastScreenshotHash, setLastScreenshotHash] = useState<string | null>(null);
   const [lastScreenshotData, setLastScreenshotData] = useState<string | null>(null);
-  const [cacheInfo, setCacheInfo] = useState({ hasCache: false, age: 0, size: 0 });
+  const [lastScreenshotBuffer, setLastScreenshotBuffer] = useState<Buffer | null>(null);
   const [showScreenshot, setShowScreenshot] = useState(false);
 
   // 模拟追踪功能
@@ -92,40 +92,35 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
       // 使用截图服务进行截图
       const result = await screenshotService.takeScreenshot();
       
-      if (result.success && result.data && result.hash) {
+      if (result.success && result.data && result.buffer) {
         setScreenshotCount(prev => prev + 1);
         
         // 检查相似度（如果设置了阈值）
-        if (lastScreenshotHash && settings.similarityThreshold > 0) {
-          const similarity = await screenshotService.calculateSimilarity(lastScreenshotHash, result.hash);
+        if (lastScreenshotBuffer && settings.similarityThreshold > 0) {
+          const similarity = await screenshotService.calculateSimilarity(lastScreenshotBuffer, result.buffer);
           
           if (similarity >= settings.similarityThreshold) {
             setStatus({ 
-              message: `截图完成 (相似度: ${similarity.toFixed(1)}%, 跳过分析${result.fromCache ? ', 使用缓存' : ''})`, 
+              message: `截图完成 (相似度: ${(similarity * 100).toFixed(1)}%, 跳过分析)`, 
               type: 'warning' 
             });
-            setLastScreenshotHash(result.hash);
+            setLastScreenshotData(result.data);
+            setLastScreenshotBuffer(result.buffer);
             return; // 相似度过高，跳过分析
           }
         }
         
-        setLastScreenshotHash(result.hash);
         setLastScreenshotData(result.data);
-        
-        // 更新缓存信息
-        const newCacheInfo = screenshotService.getCacheInfo();
-        setCacheInfo(newCacheInfo);
+        setLastScreenshotBuffer(result.buffer);
         
         setStatus({ 
-          message: `截图完成 (${new Date().toLocaleTimeString()}, 大小: ${(result.size! / 1024).toFixed(1)}KB${result.fromCache ? ', 使用缓存' : ''})`, 
+          message: `截图完成 (${new Date().toLocaleTimeString()}, 大小: ${(result.size! / 1024).toFixed(1)}KB)`, 
           type: 'success' 
         });
         
         console.log('截图成功:', {
           size: result.size,
-          hash: result.hash,
-          timestamp: result.timestamp,
-          fromCache: result.fromCache
+          timestamp: result.timestamp
         });
       } else {
         throw new Error(result.error || '截图失败');
@@ -214,30 +209,40 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
             </label>
           </label>
         </div>
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-          <button className="btn" onClick={testScreenshot}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <button 
+            className="btn" 
+            onClick={testScreenshot}
+            style={{ 
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+            }}
+          >
             📸 测试截图
           </button>
-          <button className="btn" onClick={testAnalysis}>
-            🤖 测试分析
-          </button>
           <button 
-            className="btn btn-secondary" 
-            onClick={() => {
-              screenshotService.clearCache();
-              setCacheInfo({ hasCache: false, age: 0, size: 0 });
-              setLastScreenshotHash(null);
-              setLastScreenshotData(null);
-              setShowScreenshot(false);
+            className="btn" 
+            onClick={testAnalysis}
+            style={{ 
+              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+              color: 'white',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(240, 147, 251, 0.4)'
             }}
-            disabled={!cacheInfo.hasCache}
           >
-            🗑️ 清除缓存
+            🤖 测试分析
           </button>
           {showScreenshot && lastScreenshotData && (
             <button 
               className="btn btn-secondary" 
               onClick={() => setShowScreenshot(false)}
+              style={{ 
+                background: '#ff6b6b',
+                color: 'white',
+                fontWeight: 'bold'
+              }}
             >
               🖼️ 隐藏图片
             </button>
@@ -262,12 +267,6 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
             {currentTheme ? `${currentTheme.category}-${currentTheme.subcategory}` : '-'}
           </div>
           <div className="stat-label">当前主题</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">
-            {cacheInfo.hasCache ? `${cacheInfo.age}s` : '-'}
-          </div>
-          <div className="stat-label">缓存年龄</div>
         </div>
       </div>
 
@@ -338,7 +337,7 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
                 alt="截图预览"
                 style={{
                   maxWidth: '100%',
-                  maxHeight: '500px',
+                  height: 'auto',
                   border: '1px solid #ddd',
                   borderRadius: '6px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',

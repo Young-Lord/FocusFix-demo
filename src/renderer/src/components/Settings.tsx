@@ -223,7 +223,7 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSettingsChange }) => {
             type="range" 
             value={settings.similarityThreshold}
             onChange={(e) => handleInputChange('similarityThreshold', parseInt(e.target.value))}
-            min="80" 
+            min="20" 
             max="100" 
           />
           <span>{settings.similarityThreshold}%</span>

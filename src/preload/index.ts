@@ -5,7 +5,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api = {
   // 截图相关API
   takeScreenshot: () => ipcRenderer.invoke('take-screenshot'),
-  calculateSimilarity: (hash1: string, hash2: string) => ipcRenderer.invoke('calculate-similarity', hash1, hash2),
+  calculateSimilarity: (image1: Buffer, image2: Buffer) => ipcRenderer.invoke('calculate-similarity', image1, image2),
   
   // OpenAI相关API
   openai: {
