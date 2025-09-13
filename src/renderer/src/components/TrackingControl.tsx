@@ -30,12 +30,14 @@ interface TrackingControlProps {
   };
   themes: Theme[];
   onAnalysesChange: (analyses: Analysis[]) => void;
+  onSettingsChange: (settings: any) => void;
 }
 
 const TrackingControl: React.FC<TrackingControlProps> = ({ 
   settings, 
   themes, 
-  onAnalysesChange 
+  onAnalysesChange,
+  onSettingsChange
 }) => {
   const [screenshotCount, setScreenshotCount] = useState(0);
   const [analysisCount, setAnalysisCount] = useState(0);
@@ -43,7 +45,7 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
   const [status, setStatus] = useState({ message: '准备就绪', type: 'warning' });
   const [currentAnalysis, setCurrentAnalysis] = useState<Analysis | null>(null);
   const [lastScreenshotData, setLastScreenshotData] = useState<string | null>(null);
-  const [lastScreenshotBuffer, setLastScreenshotBuffer] = useState<Buffer | null>(null);
+  const [lastScreenshotBuffer, setLastScreenshotBuffer] = useState<Uint8Array | null>(null);
   const [showScreenshot, setShowScreenshot] = useState(false);
 
   // 模拟追踪功能
@@ -169,6 +171,12 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
         message: `分析完成 (${modelName}): ${analysisResult.theme.category} - ${analysisResult.theme.subcategory} - ${analysisResult.theme.specific}`, 
         type: 'success' 
       });
+      setStatus(
+        {
+          message: `分析完成 (${analysisResult.theme.category} - ${analysisResult.theme.subcategory} - ${analysisResult.theme.specific}`,
+          type: 'success'
+        }
+      )
     } catch (error) {
       setStatus({ 
         message: `分析失败: ${error instanceof Error ? error.message : '未知错误'}`, 
@@ -203,11 +211,19 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
               <input 
                 type="checkbox" 
                 checked={settings.trackingEnabled}
-                disabled
+                onChange={(e) => {
+                  onSettingsChange({
+                    ...settings,
+                    trackingEnabled: e.target.checked
+                  });
+                }}
               />
               <span className="slider"></span>
             </label>
           </label>
+          <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+            开启后会自动按设定间隔进行截图和AI分析
+          </small>
         </div>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <button 

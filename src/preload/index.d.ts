@@ -6,6 +6,9 @@ interface ScreenshotResult {
   hash?: string
   timestamp?: number
   size?: number
+  width?: number
+  height?: number
+  format?: string
   error?: string
 }
 
@@ -34,7 +37,7 @@ interface ImageAnalysisResponse {
 
 interface Api {
   takeScreenshot: () => Promise<ScreenshotResult>
-  calculateSimilarity: (image1: Buffer, image2: Buffer) => Promise<number>
+  calculateSimilarity: (image1:Uint8Array, image2:Uint8Array) => Promise<number>
   openai: {
     setConfig: (config: { apiKey: string; baseURL: string; model: string }) => Promise<{ success: boolean; message: string }>
     testConnection: () => Promise<{ success: boolean; message: string }>

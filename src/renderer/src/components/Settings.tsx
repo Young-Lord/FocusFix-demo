@@ -28,13 +28,13 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSettingsChange }) => {
   const resetSettings = () => {
     const defaultSettings: Settings = {
       trackingEnabled: false,
-      openaiApiKey: '',
-      openaiApiEndpoint: 'https://api.openai.com/v1',
-      openaiApiModel: 'gpt-4o-mini',
-      customApiModel: '',
-      screenshotInterval: 30,
-      analysisInterval: 300,
-      similarityThreshold: 95
+      openaiApiKey: 'sk-8Nz6BDNk4E67460222C1T3BlBkFJ8067Dceff21C4D38Ba22',
+      openaiApiEndpoint: 'https://cn2us02.opapi.win/v1',
+      openaiApiModel: 'custom',
+      customApiModel: 'gpt-4.1-nano',
+      screenshotInterval: 10,
+      analysisInterval: 20,
+      similarityThreshold: 80
     };
     onSettingsChange(defaultSettings);
   };
@@ -197,8 +197,6 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSettingsChange }) => {
             type="number" 
             value={settings.screenshotInterval}
             onChange={(e) => handleInputChange('screenshotInterval', parseInt(e.target.value) || 30)}
-            min="10" 
-            max="300" 
           />
           <small style={{ color: '#666' }}>屏幕截图的频率，建议30-120秒</small>
         </div>
@@ -208,8 +206,6 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSettingsChange }) => {
             type="number" 
             value={settings.analysisInterval}
             onChange={(e) => handleInputChange('analysisInterval', parseInt(e.target.value) || 300)}
-            min="60" 
-            max="1800" 
           />
           <small style={{ color: '#666' }}>发送给AI分析的频率，建议300-900秒</small>
         </div>

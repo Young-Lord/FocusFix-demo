@@ -83,14 +83,20 @@ app.whenReady().then(() => {
       
       // // 计算图片的简单哈希值用于相似度检测
       // const imageData = thumbnail.toPNG()
-      const imageData: Buffer = await screenshot(); // jpg
-      const base64 = imageData.toString('base64')
+      const currentFormat = 'jpeg';
+      const dimensions = { width: 0, height: 0 };
+      
+      const imageData: Buffer = await screenshot();
+      const imageBase64 = `data:image/${currentFormat};base64,${imageData.toString('base64')}`;
       
       return {
         success: true,
-        data: base64,
+        data: imageBase64,
         timestamp: Date.now(),
-        size: imageData.length
+        size: imageData.length,
+        width: dimensions.width,
+        height: dimensions.height,
+        format: currentFormat
       }
     } catch (error) {
       console.error('截图失败:', error)

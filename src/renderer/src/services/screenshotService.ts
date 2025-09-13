@@ -16,9 +16,12 @@ class ScreenshotService {
   async takeScreenshot(): Promise<{
     success: boolean;
     data?: string;
-    buffer?: Buffer;
+    buffer?: Uint8Array;
     timestamp?: number;
     size?: number;
+    width?: number;
+    height?: number;
+    format?: string;
     error?: string;
   }> {
     try {
@@ -26,13 +29,16 @@ class ScreenshotService {
       const result = await window.api.takeScreenshot();
       
       if (result.success && result.data) {
-        const buffer = this.base64ToBuffer(result.data);
+        const buffer = this.base64ToBuffer(result.data.split(',')[1]);  // data:image/jpeg;base64,
         return {
           success: true,
           data: result.data,
           buffer: buffer,
           timestamp: result.timestamp || Date.now(),
-          size: result.size || buffer.length
+          size: result.size || buffer.length,
+          width: result.width,
+          height: result.height,
+          format: result.format
         };
       } else {
         throw new Error(result.error || '截图失败');
@@ -47,7 +53,7 @@ class ScreenshotService {
   }
 
   // 计算相似度
-  async calculateSimilarity(image1: Buffer, image2: Buffer): Promise<number> {
+  async calculateSimilarity(image1:Uint8Array, image2:Uint8Array): Promise<number> {
     try {
       return await window.api.calculateSimilarity(image1, image2);
     } catch (error) {

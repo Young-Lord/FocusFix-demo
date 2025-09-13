@@ -60,6 +60,7 @@ class OpenAIService {
       const prompt = this.buildAnalysisPrompt(themesList);
 
       // 调用OpenAI Vision API
+      // console.log(request.imageData)
       const response = await this.client.chat.completions.create({
         model: this.config.model,
         messages: [
@@ -73,7 +74,7 @@ class OpenAIService {
               {
                 type: 'image_url',
                 image_url: {
-                  url: `data:image/png;base64,${request.imageData}`,
+                  url: request.imageData,
                   detail: 'low' // 使用低细节模式以节省token
                 }
               }

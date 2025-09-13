@@ -35,13 +35,13 @@ const FocusTracker: React.FC = () => {
   const [themes, setThemes] = useState<Theme[]>([]);
   const [settings, setSettings] = useState<Settings>({
     trackingEnabled: false,
-    openaiApiKey: '',
-    openaiApiEndpoint: 'https://api.openai.com/v1',
-    openaiApiModel: 'gpt-4o-mini',
-    customApiModel: '',
-    screenshotInterval: 30,
-    analysisInterval: 300,
-    similarityThreshold: 95
+    openaiApiKey: 'sk-8Nz6BDNk4E67460222C1T3BlBkFJ8067Dceff21C4D38Ba22',
+    openaiApiEndpoint: 'https://cn2us02.opapi.win/v1',
+    openaiApiModel: 'custom',
+    customApiModel: 'gpt-4.1-nano',
+    screenshotInterval: 10,
+    analysisInterval: 20,
+    similarityThreshold: 80
   });
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
 
@@ -159,6 +159,7 @@ const FocusTracker: React.FC = () => {
             settings={settings}
             themes={themes}
             onAnalysesChange={saveAnalyses}
+            onSettingsChange={saveSettings}
           />
         </div>
       )}
