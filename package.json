@@ -1,10 +1,10 @@
 {
-  "name": "focus-fix-9",
+  "name": "focus-fix-10",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "description": "FocusFix - AI时间追踪应用",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "ly-niko@qq.com",
+  "homepage": "https://github.com/Young-Lord",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
