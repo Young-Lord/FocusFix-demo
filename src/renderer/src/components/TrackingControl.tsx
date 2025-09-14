@@ -198,21 +198,6 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
     }
   };
 
-  const testScreenshot = async () => {
-    await takeScreenshot();
-    setShowScreenshot(true);
-    // 移除alert，让用户直接看到图片
-  };
-
-  const testAnalysis = async () => {
-    if (!settings.openaiApiKey) {
-      alert('请先配置OpenAI API密钥');
-      return;
-    }
-    await performAnalysis();
-    alert('测试分析完成');
-  };
-
   return (
     <>
       <div className="card">
@@ -238,7 +223,7 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
             开启后会自动按设定间隔进行截图和AI分析
           </small>
         </div>
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        {/* <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <button 
             className="btn" 
             onClick={testScreenshot}
@@ -276,7 +261,7 @@ const TrackingControl: React.FC<TrackingControlProps> = ({
               🖼️ 隐藏图片
             </button>
           )}
-        </div>
+        </div> */}
         <div className={`status ${status.type}`}>
           状态：{status.message}
         </div>

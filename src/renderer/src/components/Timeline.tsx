@@ -128,7 +128,7 @@ const Timeline: React.FC<TimelineProps> = ({ analyses, onAnalysesChange }) => {
             subcategory: segment.subcategory,
             specific: segment.specific
           },
-          analysis: `在${segment.category}${segment.subcategory}${segment.specific}相关活动，持续${Math.round(segment.duration)}分钟`,
+          analysis: `在${segment.category}${segment.subcategory}${segment.specific}相关活动`,
           confidence: 0.7 + Math.random() * 0.3,
           timestamp: new Date(segment.startTime).toISOString()
         });
@@ -212,7 +212,7 @@ const Timeline: React.FC<TimelineProps> = ({ analyses, onAnalysesChange }) => {
           <button className="btn" onClick={loadTimeline}>
             加载
           </button>
-          <button
+          {/* <button
             className="btn btn-secondary"
             onClick={() => {
               const testData = generateTestData();
@@ -223,7 +223,7 @@ const Timeline: React.FC<TimelineProps> = ({ analyses, onAnalysesChange }) => {
             }}
           >
             生成测试数据
-          </button>
+          </button> */}
         </div>
       </div>
       {/* 时间图 */}
