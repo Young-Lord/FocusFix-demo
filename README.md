@@ -12,6 +12,8 @@ SJTU 2025 AI Hackathon. 目前来说不建议用，除非你想把隐私全都�
 - **追踪控制**: 启动/停止自动追踪，测试截图和分析功能
 - **主题管理**: 管理 AI 分析的主题分类（三级结构：大类 → 小类 → 具体）（这货应该改成基于标签）
 
+<img alt="预览图，显示了条状的历史时间使用情况" width="50%" src="https://github.com/user-attachments/assets/de711961-ec5f-497a-a73a-07c7da17a2d4" />
+
 ## 开发命令
 
 ```bash
