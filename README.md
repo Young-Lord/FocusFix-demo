@@ -1,6 +1,6 @@
 # FocusFix - AI 时间追踪应用
 
-这是一个 vibe 出来的，基于 Electron + React + TypeScript 的 AI 驱动时间追踪应用。
+这是一个 vibe 出来的，基于 Electron + React + TypeScript 的 AI 驱动时间追踪应用。最大特点是截图后基于 AI 自动归类，实现跨应用的屏幕时间分配量化。
 
 SJTU 2025 AI Hackathon. 目前来说不建议用，除非你想把隐私全都送给某些可疑的第三方。另外还有主页视图错位一类的小 bug，迟早会重写。
 
